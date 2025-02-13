@@ -1,0 +1,16 @@
+{
+  "manifest_version": 3,
+  "name": "FIX REVA SITE PLZ!",
+  "version": "1.0",
+  "description": "Добавляет фиолетовые кнопки для удобной работы с сайтом revonline.ru.",
+  "content_scripts": [
+    {
+      "matches": [
+        "https://revonline.ru/pin"
+      ],
+      "js": [
+        "pin.js"
+      ]
+    }
+  ]
+}
