@@ -16,7 +16,6 @@ function showInputWindow() {
                 </div>
             </div>
         </div>
-        </div>
     `;
 
     document.body.insertAdjacentHTML('beforeend', modalHtml);
@@ -25,7 +24,6 @@ function showInputWindow() {
 
     document.getElementById('input-window-submit').onclick = () => {
         const textarea = document.getElementById('input-window-textarea');
-        // Разбиваем текст на пин-коды по пробелам, запятым и переносам строк, убираем пустые значения
         const pinCodes = textarea.value.split(/[\s,]+/).filter(pin => pin.trim() !== '');
         if (pinCodes.length) {
             document.getElementById('input-window').remove();
@@ -35,18 +33,84 @@ function showInputWindow() {
         }
     };
 
-    // Закрытие окна при клике на кнопку "X"
     document.getElementById('input-window-close').onclick = () => {
         document.getElementById('input-window').remove();
     };
 }
 
+function createProgressBar(totalPins) {
+    const progressBarHtml = `
+        <div id="global-progress-bar" style="
+            position: fixed;
+            top: 20px;
+            left: 20px;
+            background: #160a0a;
+            padding: 10px;
+            border: 1px solid #d0c696;
+            border-radius: 0;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.2);
+            z-index: 10000;
+        ">
+            <div id="progress-container" style="
+                width: 400px; /* Увеличено в 2 раза */
+                height: 40px; /* Увеличено в 2 раза */
+                background: #262020;
+                border: 1px solid #d0c696;
+                border-radius: 0;
+                position: relative;
+                overflow: hidden;
+            ">
+                <div id="progress-fill" style="
+                    width: 0%;
+                    height: 100%;
+                    background: #ac2c28;
+                    transition: width 0.3s ease;
+                "></div>
+                <div id="progress-text" style="
+                    position: absolute;
+                    top: 50%;
+                    left: 50%;
+                    transform: translate(-50%, -50%);
+                    color: #d0c696;
+                    font-family: Arial, sans-serif;
+                    font-size: 16px;
+                    font-weight: bold;
+                    z-index: 1;
+                ">0 / ${totalPins}</div>
+            </div>
+        </div>
+    `;
+    document.body.insertAdjacentHTML('beforeend', progressBarHtml);
+}
+
+function updateProgress(processedPins, totalPins) {
+    const progress = (processedPins / totalPins) * 100;
+    const progressFill = document.getElementById('progress-fill');
+    const progressText = document.getElementById('progress-text');
+    if (progressFill && progressText) {
+        progressFill.style.width = `${progress}%`;
+        progressText.textContent = `${processedPins} / ${totalPins}`; // Обновляем текст
+    }
+}
+
+function removeProgressBar() {
+    const progressBar = document.getElementById('global-progress-bar');
+    if (progressBar) {
+        progressBar.remove();
+    }
+}
 
 function processPinCodes(pinCodes) {
-    // Рекурсивная обработка пин-кодов
+    const totalPins = pinCodes.length;
+    let processedPins = 0;
+
+    // Создаем прогресс-бар и передаем общее количество пин-кодов
+    createProgressBar(totalPins);
+
     (function processNext(index) {
         if (index >= pinCodes.length) {
             console.log('Все пин-коды обработаны.');
+            removeProgressBar(); // Удаляем прогресс-бар после завершения
             addButton();
             return;
         }
@@ -58,6 +122,7 @@ function processPinCodes(pinCodes) {
             pinInput.value = pinCode;
         } else {
             console.error('Поле для ввода пин-кода не найдено.');
+            removeProgressBar(); // Удаляем прогресс-бар в случае ошибки
             return;
         }
 
@@ -66,10 +131,10 @@ function processPinCodes(pinCodes) {
             submitButton.click();
         } else {
             console.error('Кнопка отправки не найдена.');
+            removeProgressBar(); // Удаляем прогресс-бар в случае ошибки
             return;
         }
 
-        // Ждем появления кнопки "Активировать" и кликаем по ней
         function activatePopup() {
             const activateSubmit = document.querySelector('.ovl input[type="submit"]');
             if (activateSubmit) {
@@ -80,11 +145,12 @@ function processPinCodes(pinCodes) {
             }
         }
 
-        // Ждем появления кнопки "ОК" и кликаем по ней
         function clickOkButton(nextIndex) {
             const okButton = document.querySelector('.js-ovl-close');
             if (okButton) {
                 okButton.click();
+                processedPins++;
+                updateProgress(processedPins, totalPins); // Обновляем прогресс
                 setTimeout(() => processNext(nextIndex), 1000);
             } else {
                 setTimeout(() => clickOkButton(nextIndex), 1000);
@@ -112,7 +178,6 @@ function addButton() {
 const observer = new MutationObserver((mutations, obs) => {
     const targetElement = document.querySelector('#pin-form > div.text-center');
     if (targetElement) {
-        // Добавляем кнопку для ввода нескольких пин-кодов
         addButton();
         obs.disconnect();
     }
