@@ -1,15 +1,23 @@
 {
   "manifest_version": 3,
   "name": "FIX REVA SITE PLZ!",
-  "version": "1.0",
-  "description": "Добавляет фиолетовые кнопки для удобной работы с сайтом revonline.ru.",
+  "version": "1.1",
+  "description": "Добавляет фиолетовые кнопки для удобной работы с сайтом revonline.ru и market.vkplay.ru.",
   "content_scripts": [
     {
       "matches": [
         "https://revonline.ru/pin"
       ],
       "js": [
-        "pin.js"
+        "revonline-pins.js"
+      ]
+    },
+    {
+      "matches": [
+        "https://market.vkplay.ru/*"
+      ],
+      "js": [
+        "vkplay-pins.js"
       ]
     }
   ]
